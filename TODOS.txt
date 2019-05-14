@@ -1,0 +1,26 @@
+ - make AuthToken dynamic (options.go)
+
+ - improve Docker integration (docker.go)
+   - 171 handle containerResp.Warnings
+   - 249 improve error handling
+
+ - improve the main Handler (handler.go)
+   - 182 make UserAgent dynamic and also exposed in the RESTful API
+   - 154 we need to handle if docker or chrome from the system - maybe move docker functions outside, and use a simple if/else to make it clean and clear
+   - 199 handle err and use the Extrusion content
+   - 202 handle wait for chrome to finish
+   - 207 handle shutdown chrome
+
+ - improve github.go
+   - 57 make SSH key dynamic - generate a new one
+
+ - improve dropbox_task.go
+   - 15 Fix error in dropbox upload
+
+ - improve upload/download of files - see file.go
+
+ - improve dom.go
+   - 53 add selector to dumped file name
+
+ - improve owa.go
+   - 56/133 add version checker before injecting the JS
