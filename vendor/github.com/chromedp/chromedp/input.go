@@ -2,7 +2,6 @@ package chromedp
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/dom"
@@ -57,7 +56,7 @@ func MouseClickXY(x, y int64, opts ...MouseOption) Action {
 func MouseClickNode(n *cdp.Node, opts ...MouseOption) Action {
 	return ActionFunc(func(ctx context.Context) error {
 		var pos []int
-		err := EvaluateAsDevTools(fmt.Sprintf(scrollIntoViewJS, n.FullXPath()), &pos).Do(ctx)
+		err := EvaluateAsDevTools(snippet(scrollIntoViewJS, cashX(true), nil, n), &pos).Do(ctx)
 		if err != nil {
 			return err
 		}
@@ -85,7 +84,7 @@ func MouseClickNode(n *cdp.Node, opts ...MouseOption) Action {
 }
 
 // MouseOption is a mouse action option.
-type MouseOption func(*input.DispatchMouseEventParams) *input.DispatchMouseEventParams
+type MouseOption = func(*input.DispatchMouseEventParams) *input.DispatchMouseEventParams
 
 // Button is a mouse action option to set the button to click from a string.
 func Button(btn string) MouseOption {
@@ -175,7 +174,7 @@ func KeyActionNode(n *cdp.Node, keys string, opts ...KeyOption) Action {
 }
 
 // KeyOption is a key action option.
-type KeyOption func(*input.DispatchKeyEventParams) *input.DispatchKeyEventParams
+type KeyOption = func(*input.DispatchKeyEventParams) *input.DispatchKeyEventParams
 
 // KeyModifiers is a key action option to add additional modifiers on the key
 // press.

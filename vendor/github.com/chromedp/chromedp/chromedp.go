@@ -113,7 +113,7 @@ func NewContext(parent context.Context, opts ...ContextOption) (context.Context,
 		o(c)
 	}
 	if c.Allocator == nil {
-		c.Allocator = setupExecAllocator(DefaultExecAllocatorOptions...)
+		c.Allocator = setupExecAllocator(DefaultExecAllocatorOptions[:]...)
 	}
 
 	ctx = context.WithValue(ctx, contextKey{}, c)
@@ -220,45 +220,55 @@ func Run(ctx context.Context, actions ...Action) error {
 }
 
 func (c *Context) newTarget(ctx context.Context) error {
-	if c.targetID == "" && c.first {
-		tries := 0
-	retry:
-		// If we just allocated this browser, and it has a single page
-		// that's blank and not attached, use it.
-		infos, err := target.GetTargets().Do(cdp.WithExecutor(ctx, c.Browser))
+	if c.targetID != "" {
+		if err := c.attachTarget(ctx, c.targetID); err != nil {
+			return err
+		}
+		// This new page might have already loaded its top-level frame
+		// already, in which case we wouldn't see the frameNavigated and
+		// documentUpdated events. Load them here.
+		tree, err := page.GetFrameTree().Do(cdp.WithExecutor(ctx, c.Target))
 		if err != nil {
 			return err
 		}
-		pages := 0
-		for _, info := range infos {
-			if info.Type == "page" && info.URL == "about:blank" && !info.Attached {
-				c.targetID = info.TargetID
-				pages++
-			}
-		}
-		if pages < 1 {
-			// TODO: replace this polling with retries with a wait
-			// via Target.setDiscoverTargets after allocating a new
-			// browser.
-			if tries++; tries < 5 {
-				time.Sleep(10 * time.Millisecond)
-				goto retry
-			}
-			return fmt.Errorf("waited too long for page targets to show up")
-		}
-		if pages > 1 {
-			// Multiple blank pages; just in case, don't use any.
-			c.targetID = ""
-		}
+		c.Target.cur = tree.Frame
+		c.Target.documentUpdated(ctx)
+		return nil
 	}
-
-	if c.targetID == "" {
+	if !c.first {
 		var err error
 		c.targetID, err = target.CreateTarget("about:blank").Do(cdp.WithExecutor(ctx, c.Browser))
 		if err != nil {
 			return err
 		}
+		return c.attachTarget(ctx, c.targetID)
 	}
+
+	// This is like WaitNewTarget, but for the entire browser.
+	ch := make(chan target.ID, 1)
+	lctx, cancel := context.WithCancel(ctx)
+	ListenBrowser(lctx, func(ev interface{}) {
+		var info *target.Info
+		switch ev := ev.(type) {
+		case *target.EventTargetCreated:
+			info = ev.TargetInfo
+		case *target.EventTargetInfoChanged:
+			info = ev.TargetInfo
+		default:
+			return
+		}
+		if info.Type == "page" && info.URL == "about:blank" {
+			ch <- info.TargetID
+			cancel()
+		}
+	})
+
+	// wait for the first blank tab to appear
+	action := target.SetDiscoverTargets(true)
+	if err := action.Do(cdp.WithExecutor(ctx, c.Browser)); err != nil {
+		return err
+	}
+	c.targetID = <-ch
 	return c.attachTarget(ctx, c.targetID)
 }
 
@@ -292,7 +302,7 @@ func (c *Context) attachTarget(ctx context.Context, targetID target.ID) error {
 }
 
 // ContextOption is a context option.
-type ContextOption func(*Context)
+type ContextOption = func(*Context)
 
 // WithTargetID sets up a context to be attached to an existing target, instead
 // of creating a new one.
@@ -329,19 +339,10 @@ func WithBrowserOption(opts ...BrowserOption) ContextOption {
 
 // Targets lists all the targets in the browser attached to the given context.
 func Targets(ctx context.Context) ([]*target.Info, error) {
-	// Don't rely on Run, as that needs to be able to call Targets, and we
-	// don't want cyclic func calls.
+	if err := Run(ctx); err != nil {
+		return nil, err
+	}
 	c := FromContext(ctx)
-	if c == nil || c.Allocator == nil {
-		return nil, ErrInvalidContext
-	}
-	if c.Browser == nil {
-		browser, err := c.Allocator.Allocate(ctx, c.browserOpts...)
-		if err != nil {
-			return nil, err
-		}
-		c.Browser = browser
-	}
 	return target.GetTargets().Do(cdp.WithExecutor(ctx, c.Browser))
 }
 
@@ -442,4 +443,35 @@ func ListenTarget(ctx context.Context, fn func(ev interface{})) {
 	} else {
 		c.targetListeners = append(c.targetListeners, cl)
 	}
+}
+
+// WaitNewTarget can be used to wait for the current target to open a new
+// target. Once fn matches a new unattached target, its target ID is sent via
+// the returned channel.
+func WaitNewTarget(ctx context.Context, fn func(*target.Info) bool) <-chan target.ID {
+	ch := make(chan target.ID, 1)
+	lctx, cancel := context.WithCancel(ctx)
+	ListenTarget(lctx, func(ev interface{}) {
+		var info *target.Info
+		switch ev := ev.(type) {
+		case *target.EventTargetCreated:
+			info = ev.TargetInfo
+		case *target.EventTargetInfoChanged:
+			info = ev.TargetInfo
+		default:
+			return
+		}
+		if info.OpenerID == "" {
+			return // not a child target
+		}
+		if info.Attached {
+			return // already attached; not a new target
+		}
+		if fn(info) {
+			ch <- info.TargetID
+			close(ch)
+			cancel()
+		}
+	})
+	return ch
 }

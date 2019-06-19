@@ -138,8 +138,12 @@ We can apply the same pattern to read and write structured responses through a J
 		encoder = json.NewEncoder(w)
 	)
 	for {
-		if _, err = r.NextFrame(); err != nil {
+		hdr, err = r.NextFrame()
+		if err != nil {
 			return err
+		}
+		if hdr.OpCode == ws.OpClose {
+			return io.EOF
 		}
 		var req Request
 		if err := decoder.Decode(&req); err != nil {
@@ -306,16 +310,16 @@ func main() {
 			if string(host) == "github.com" {
 				return nil
 			}
-			return &ws.RejectConnectionError(
+			return ws.RejectConnectionError(
 				ws.RejectionStatus(403),
 				ws.RejectionHeader(ws.HandshakeHeaderString(
-					"X-Want-Host: github.com",
+					"X-Want-Host: github.com\r\n",
 				)),
 			)
 		},
 		OnHeader: func(key, value []byte) error {
 			if string(key) != "Cookie" {
-				return
+				return nil
 			}
 			ok := httphead.ScanCookie(value, func(key, value []byte) bool {
 				// Check session here or do some other stuff with cookies.
@@ -325,12 +329,12 @@ func main() {
 			if ok {
 				return nil
 			}
-			return &ws.RejectConnectionError(
+			return ws.RejectConnectionError(
 				ws.RejectionReason("bad cookie"),
 				ws.RejectionStatus(400),
 			)
 		},
-		OnBeforeUpgrade: func() (HandshakeHeader, error) {
+		OnBeforeUpgrade: func() (ws.HandshakeHeader, error) {
 			return header, nil
 		},
 	}

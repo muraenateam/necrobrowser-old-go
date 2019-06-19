@@ -1,14 +1,13 @@
 package chromedp
 
 import (
-	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strings"
 	"sync"
 )
 
@@ -45,8 +44,9 @@ func setupExecAllocator(opts ...ExecAllocatorOption) *ExecAllocator {
 }
 
 // DefaultExecAllocatorOptions are the ExecAllocator options used by NewContext
-// if the given parent context doesn't have an allocator set up.
-var DefaultExecAllocatorOptions = []ExecAllocatorOption{
+// if the given parent context doesn't have an allocator set up. Do not modify
+// this global; instead, use NewExecAllocator. See ExampleExecAllocator.
+var DefaultExecAllocatorOptions = [...]ExecAllocatorOption{
 	NoFirstRun,
 	NoDefaultBrowserCheck,
 	Headless,
@@ -91,7 +91,7 @@ func NewExecAllocator(parent context.Context, opts ...ExecAllocatorOption) (cont
 }
 
 // ExecAllocatorOption is a exec allocator option.
-type ExecAllocatorOption func(*ExecAllocator)
+type ExecAllocatorOption = func(*ExecAllocator)
 
 // ExecAllocator is an Allocator which starts new browser processes on the host
 // machine.
@@ -100,6 +100,8 @@ type ExecAllocator struct {
 	initFlags map[string]interface{}
 
 	wg sync.WaitGroup
+
+	combinedOutputWriter io.Writer
 }
 
 // allocTempDir is used to group all ExecAllocator temporary user data dirs in
@@ -162,13 +164,14 @@ func (a *ExecAllocator) Allocate(ctx context.Context, opts ...BrowserOption) (*B
 	}()
 	allocateCmdOptions(cmd)
 
-	// We must start the cmd before calling cmd.Wait, as otherwise the two
-	// can run into a data race.
-	stderr, err := cmd.StderrPipe()
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
 	}
-	defer stderr.Close()
+	cmd.Stderr = cmd.Stdout
+
+	// We must start the cmd before calling cmd.Wait, as otherwise the two
+	// can run into a data race.
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
@@ -179,6 +182,9 @@ func (a *ExecAllocator) Allocate(ctx context.Context, opts ...BrowserOption) (*B
 	case <-c.allocated: // for this browser's root context
 	}
 	a.wg.Add(1) // for the entire allocator
+	if a.combinedOutputWriter != nil {
+		a.wg.Add(1) // for the io.Copy in a separate goroutine
+	}
 	go func() {
 		<-ctx.Done()
 		// First wait for the process to be finished.
@@ -195,7 +201,8 @@ func (a *ExecAllocator) Allocate(ctx context.Context, opts ...BrowserOption) (*B
 		a.wg.Done()
 		close(c.allocated)
 	}()
-	wsURL, err := addrFromStderr(stderr)
+
+	wsURL, err := readOutput(stdout, a.combinedOutputWriter, a.wg.Done)
 	if err != nil {
 		return nil, err
 	}
@@ -215,32 +222,50 @@ func (a *ExecAllocator) Allocate(ctx context.Context, opts ...BrowserOption) (*B
 	return browser, nil
 }
 
-// addrFromStderr finds the free port that Chrome selected for the debugging
-// protocol. This should be hooked up to a new Chrome process's Stderr pipe
-// right after it is started.
-func addrFromStderr(rc io.ReadCloser) (string, error) {
-	defer rc.Close()
-	url := ""
-	scanner := bufio.NewScanner(rc)
-	prefix := "DevTools listening on"
-
-	var lines []string
-	for scanner.Scan() {
-		line := scanner.Text()
-		if s := strings.TrimPrefix(line, prefix); s != line {
-			url = strings.TrimSpace(s)
-			break
+// readOutput grabs the websocket address from chrome's output, returning as
+// soon as it is found. All read output is forwarded to forward, if non-nil.
+// done is used to signal that the asynchronous io.Copy is done, if any.
+func readOutput(rc io.ReadCloser, forward io.Writer, done func()) (wsURL string, _ error) {
+	prefix := []byte("DevTools listening on")
+	var accumulated bytes.Buffer
+	var p [256]byte
+readLoop:
+	for {
+		n, err := rc.Read(p[:])
+		if err != nil {
+			return "", fmt.Errorf("chrome failed to start:\n%s",
+				accumulated.Bytes())
 		}
-		lines = append(lines, line)
+		if forward != nil {
+			if _, err := forward.Write(p[:n]); err != nil {
+				return "", err
+			}
+		}
+
+		lines := bytes.Split(p[:n], []byte("\n"))
+		for _, line := range lines {
+			if bytes.HasPrefix(line, prefix) {
+				line = line[len(prefix):]
+				// use TrimSpace, to also remove \r on Windows
+				line = bytes.TrimSpace(line)
+				wsURL = string(line)
+				break readLoop
+			}
+		}
+		accumulated.Write(p[:n])
 	}
-	if err := scanner.Err(); err != nil {
-		return "", err
+	if forward == nil {
+		// We don't need the process's output anymore.
+		rc.Close()
+	} else {
+		// Copy the rest of the output in a separate goroutine, as we
+		// need to return with the websocket URL.
+		go func() {
+			io.Copy(forward, rc)
+			done()
+		}()
 	}
-	if url == "" {
-		return "", fmt.Errorf("chrome stopped too early; stderr:\n%s",
-			strings.Join(lines, "\n"))
-	}
-	return url, nil
+	return wsURL, nil
 }
 
 // Wait satisfies the Allocator interface.
@@ -361,6 +386,14 @@ func Headless(a *ExecAllocator) {
 // DisableGPU is the command line option to disable the GPU process.
 func DisableGPU(a *ExecAllocator) {
 	Flag("disable-gpu", true)(a)
+}
+
+// CombinedOutput is used to set an io.Writer where stdout and stderr
+// from the browser will be sent
+func CombinedOutput(w io.Writer) ExecAllocatorOption {
+	return func(a *ExecAllocator) {
+		a.combinedOutputWriter = w
+	}
 }
 
 // NewRemoteAllocator creates a new context set up with a RemoteAllocator,

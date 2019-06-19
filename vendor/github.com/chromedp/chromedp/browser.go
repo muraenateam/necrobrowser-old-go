@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/url"
 	"os"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -105,25 +105,25 @@ func NewBrowser(ctx context.Context, urlstr string, opts ...BrowserOption) (*Bro
 	return b, nil
 }
 
-// forceIP forces the host component in urlstr to be an IP address.
+// forceIP tries to force the host component in urlstr to be an IP address.
 //
 // Since Chrome 66+, Chrome DevTools Protocol clients connecting to a browser
 // must send the "Host:" header as either an IP address, or "localhost".
 func forceIP(urlstr string) string {
-	if i := strings.Index(urlstr, "://"); i != -1 {
-		scheme := urlstr[:i+3]
-		host, port, path := urlstr[len(scheme)+3:], "", ""
-		if i := strings.Index(host, "/"); i != -1 {
-			host, path = host[:i], host[i:]
-		}
-		if i := strings.Index(host, ":"); i != -1 {
-			host, port = host[:i], host[i:]
-		}
-		if addr, err := net.ResolveIPAddr("ip", host); err == nil {
-			urlstr = scheme + addr.IP.String() + port + path
-		}
+	u, err := url.Parse(urlstr)
+	if err != nil {
+		return urlstr
 	}
-	return urlstr
+	host, port, err := net.SplitHostPort(u.Host)
+	if err != nil {
+		return urlstr
+	}
+	addr, err := net.ResolveIPAddr("ip", host)
+	if err != nil {
+		return urlstr
+	}
+	u.Host = net.JoinHostPort(addr.IP.String(), port)
+	return u.String()
 }
 
 func (b *Browser) newExecutorForTarget(targetID target.ID, sessionID target.SessionID) *Target {
@@ -139,13 +139,10 @@ func (b *Browser) newExecutorForTarget(targetID target.ID, sessionID target.Sess
 		SessionID: sessionID,
 
 		messageQueue: make(chan *cdproto.Message, 1024),
-		waitQueue:    make(chan func() bool, 1024),
 		frames:       make(map[cdp.FrameID]*cdp.Frame),
 
 		logf: b.logf,
 		errf: b.errf,
-
-		tick: make(chan time.Time, 1),
 	}
 	// This send should be blocking, to ensure the tab is inserted into the
 	// map before any more target events are routed.
@@ -218,11 +215,7 @@ type decMessageString struct {
 }
 
 func (m *decMessageString) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	if l.IsNull() {
-		l.Skip()
-	} else {
-		l.AddError(unmarshal(&m.lexer, l.UnsafeBytes(), &m.m))
-	}
+	l.AddError(unmarshal(&m.lexer, l.UnsafeBytes(), &m.m))
 }
 
 //easyjson:json
@@ -328,9 +321,6 @@ func (b *Browser) run(ctx context.Context) {
 	}()
 
 	pages := make(map[target.SessionID]*Target, 32)
-
-	ticker := time.NewTicker(2 * time.Millisecond)
-	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
@@ -362,20 +352,6 @@ func (b *Browser) run(ctx context.Context) {
 				delete(pages, tm.sessionID)
 			}
 
-		case t := <-ticker.C:
-			// Roughly once every 2ms, give every target a
-			// chance to run periodic work like checking if
-			// a wait function is complete.
-			//
-			// If a target hasn't picked up the previous
-			// tick, skip it.
-			for _, target := range pages {
-				select {
-				case target.tick <- t:
-				default:
-				}
-			}
-
 		case <-b.LostConnection:
 			return // to avoid "write: broken pipe" errors
 		}
@@ -383,7 +359,7 @@ func (b *Browser) run(ctx context.Context) {
 }
 
 // BrowserOption is a browser option.
-type BrowserOption func(*Browser)
+type BrowserOption = func(*Browser)
 
 // WithBrowserLogf is a browser option to specify a func to receive general logging.
 func WithBrowserLogf(f func(string, ...interface{})) BrowserOption {

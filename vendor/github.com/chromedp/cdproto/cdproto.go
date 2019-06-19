@@ -54,6 +54,7 @@ import (
 	"github.com/chromedp/cdproto/tethering"
 	"github.com/chromedp/cdproto/tracing"
 	"github.com/chromedp/cdproto/webaudio"
+	"github.com/chromedp/cdproto/webauthn"
 	"github.com/mailru/easyjson"
 )
 
@@ -288,6 +289,7 @@ const (
 	CommandEmulationSetScriptExecutionDisabled             = emulation.CommandSetScriptExecutionDisabled
 	CommandEmulationSetTouchEmulationEnabled               = emulation.CommandSetTouchEmulationEnabled
 	CommandEmulationSetVirtualTimePolicy                   = emulation.CommandSetVirtualTimePolicy
+	CommandEmulationSetTimezoneOverride                    = emulation.CommandSetTimezoneOverride
 	CommandEmulationSetUserAgentOverride                   = emulation.CommandSetUserAgentOverride
 	EventEmulationVirtualTimeBudgetExpired                 = "Emulation.virtualTimeBudgetExpired"
 	CommandFetchDisable                                    = fetch.CommandDisable
@@ -429,6 +431,7 @@ const (
 	CommandOverlaySetShowDebugBorders                      = overlay.CommandSetShowDebugBorders
 	CommandOverlaySetShowFPSCounter                        = overlay.CommandSetShowFPSCounter
 	CommandOverlaySetShowPaintRects                        = overlay.CommandSetShowPaintRects
+	CommandOverlaySetShowLayoutShiftRegions                = overlay.CommandSetShowLayoutShiftRegions
 	CommandOverlaySetShowScrollBottleneckRects             = overlay.CommandSetShowScrollBottleneckRects
 	CommandOverlaySetShowHitTestBorders                    = overlay.CommandSetShowHitTestBorders
 	CommandOverlaySetShowViewportSizeOnResize              = overlay.CommandSetShowViewportSizeOnResize
@@ -616,6 +619,13 @@ const (
 	EventWebAudioContextCreated                            = "WebAudio.contextCreated"
 	EventWebAudioContextDestroyed                          = "WebAudio.contextDestroyed"
 	EventWebAudioContextChanged                            = "WebAudio.contextChanged"
+	CommandWebAuthnEnable                                  = webauthn.CommandEnable
+	CommandWebAuthnDisable                                 = webauthn.CommandDisable
+	CommandWebAuthnAddVirtualAuthenticator                 = webauthn.CommandAddVirtualAuthenticator
+	CommandWebAuthnRemoveVirtualAuthenticator              = webauthn.CommandRemoveVirtualAuthenticator
+	CommandWebAuthnAddCredential                           = webauthn.CommandAddCredential
+	CommandWebAuthnGetCredentials                          = webauthn.CommandGetCredentials
+	CommandWebAuthnClearCredentials                        = webauthn.CommandClearCredentials
 )
 
 // Error error type.
@@ -1292,6 +1302,9 @@ func UnmarshalMessage(msg *Message) (interface{}, error) {
 	case CommandEmulationSetVirtualTimePolicy:
 		v = new(emulation.SetVirtualTimePolicyReturns)
 
+	case CommandEmulationSetTimezoneOverride:
+		return emptyVal, nil
+
 	case CommandEmulationSetUserAgentOverride:
 		return emptyVal, nil
 
@@ -1713,6 +1726,9 @@ func UnmarshalMessage(msg *Message) (interface{}, error) {
 		return emptyVal, nil
 
 	case CommandOverlaySetShowPaintRects:
+		return emptyVal, nil
+
+	case CommandOverlaySetShowLayoutShiftRegions:
 		return emptyVal, nil
 
 	case CommandOverlaySetShowScrollBottleneckRects:
@@ -2275,6 +2291,27 @@ func UnmarshalMessage(msg *Message) (interface{}, error) {
 
 	case EventWebAudioContextChanged:
 		v = new(webaudio.EventContextChanged)
+
+	case CommandWebAuthnEnable:
+		return emptyVal, nil
+
+	case CommandWebAuthnDisable:
+		return emptyVal, nil
+
+	case CommandWebAuthnAddVirtualAuthenticator:
+		v = new(webauthn.AddVirtualAuthenticatorReturns)
+
+	case CommandWebAuthnRemoveVirtualAuthenticator:
+		return emptyVal, nil
+
+	case CommandWebAuthnAddCredential:
+		return emptyVal, nil
+
+	case CommandWebAuthnGetCredentials:
+		v = new(webauthn.GetCredentialsReturns)
+
+	case CommandWebAuthnClearCredentials:
+		return emptyVal, nil
 
 	default:
 		return nil, cdp.ErrUnknownCommandOrEvent(msg.Method)

@@ -27,7 +27,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a77dce66abb519c4954ae09ccf0abb246441d6ea9acc46f3bf8a940819a75087"
+  digest = "1:66fa91ce4609c9a6e2f875f20cd3d697a861901a32b910dbb5360bdbb16da952"
   name = "github.com/chromedp/cdproto"
   packages = [
     ".",
@@ -73,20 +73,22 @@
     "tethering",
     "tracing",
     "webaudio",
+    "webauthn",
   ]
   pruneopts = "UT"
-  revision = "764a6f24cacb016c4ee990516bda169075b8c3d5"
+  revision = "d6d2f92b486d0c60d5e6a368994c8b9bc4a20806"
 
 [[projects]]
   branch = "master"
-  digest = "1:27c99050043c1e583bfc24f3e773eaff6c96f226cd15d2b9b68adc601ebd8e68"
+  digest = "1:c3ccc8459c24304b6c6d833815ad4275ab42263e795f3624069ad0731cbcf19b"
   name = "github.com/chromedp/chromedp"
   packages = [
     ".",
+    "device",
     "kb",
   ]
   pruneopts = "UT"
-  revision = "04906f5102799b2f505f7511a093618b69fc5956"
+  revision = "f2d356ec7f7767a7888bc009d6a51d389061de1c"
 
 [[projects]]
   digest = "1:5d7f88f9487f370e3ae52155465156370fc5798102d811d2d4448d2385ccaf67"
@@ -102,7 +104,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:df2ab24c58cec36dd782f04cac1e3328710e8e0d65966af4dc43aff991c8b6bc"
+  digest = "1:870e5501ad2fb53cb86e1acc075a48f8c43f46460852f35f99fc839808c7c365"
   name = "github.com/docker/docker"
   packages = [
     "api",
@@ -125,7 +127,7 @@
     "errdefs",
   ]
   pruneopts = "UT"
-  revision = "3042254a87274ff5e9561f2da1a986a703dfc60f"
+  revision = "384c782721c7d0865b7d40ce7ca402022c690058"
 
 [[projects]]
   digest = "1:811c86996b1ca46729bad2724d4499014c4b9effd05ef8c71b852aad90deb0ce"
@@ -175,12 +177,12 @@
   version = "v0.0.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:a4b5a6b32f33323c7850fae4ec085a0fbac3be93c057b6b8cef5bcabe24645ac"
+  digest = "1:3ee1d175a75b911a659fbd860060874c4f503e793c5870d13e5a0ede529a63cf"
   name = "github.com/gin-contrib/sse"
   packages = ["."]
   pruneopts = "UT"
-  revision = "5545eab6dad3bbbd6c5ae9186383c2a9d23c0dae"
+  revision = "54d8467d122d380a14768b6b4e5cd7ca4755938f"
+  version = "v0.1.0"
 
 [[projects]]
   digest = "1:d8bd2a337f6ff2188e08f72c614f2f3f0fd48e6a7b37a071b197e427d77d3a47"
@@ -217,15 +219,15 @@
   version = "v0.2.0"
 
 [[projects]]
-  digest = "1:0170d57f475b654098594498fbd9c94a57464b91d6dd855fe409d87656d4aa5e"
+  digest = "1:aea6697202cefa9365797c4c8ad0a1dbdf15ba21600ddc599a9000629a2ecb6f"
   name = "github.com/gobwas/ws"
   packages = [
     ".",
     "wsutil",
   ]
   pruneopts = "UT"
-  revision = "469ccd6afe52b489eee1e662098562dd7d77a4f8"
-  version = "v1.0.0"
+  revision = "05baaea2bbcfe8963301c62d9931c882d59595cd"
+  version = "v1.0.2"
 
 [[projects]]
   digest = "1:48092bf6632f55839850666c33469f546f6d45fdbd59a66759ec12e84d853dc2"
@@ -248,6 +250,22 @@
   pruneopts = "UT"
   revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
   version = "v1.3.1"
+
+[[projects]]
+  digest = "1:777a682d72e7ff9dc6f139e6eb8edfaf3b8cbbd0f47023fdef174aede101e6bd"
+  name = "github.com/jinzhu/gorm"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "01b66011427614f01e84a473b0303c917179f2a0"
+  version = "v1.9.9"
+
+[[projects]]
+  digest = "1:01ed62f8f4f574d8aff1d88caee113700a2b44c42351943fa73cc1808f736a50"
+  name = "github.com/jinzhu/inflection"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f5c5f50e6090ae76a29240b61ae2a90dd810112e"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:f5a2051c55d05548d2d4fd23d244027b59fbd943217df8aa3b5e170ac2fd6e1b"
@@ -274,8 +292,20 @@
   version = "v1.0.2"
 
 [[projects]]
+  digest = "1:bdd53b87de8185da386bae179c84d4848854c6870bacacf6a154fe63e2e750f7"
+  name = "github.com/lib/pq"
+  packages = [
+    ".",
+    "oid",
+    "scram",
+  ]
+  pruneopts = "UT"
+  revision = "bc6a3c0594130b1e34005880bc600b6d3f49fa7f"
+  version = "v1.1.1"
+
+[[projects]]
   branch = "master"
-  digest = "1:8a82e4b519fb94b83923e0a6fae6aced276c887781b94b6a00c90b3dad240ba1"
+  digest = "1:da0ba0ef81aa74725eae889e476ea9f07ea9b6acb697d0ae296a6824af8c3fc8"
   name = "github.com/mailru/easyjson"
   packages = [
     ".",
@@ -284,7 +314,7 @@
     "jwriter",
   ]
   pruneopts = "UT"
-  revision = "1ea4449da9834f4d333f1cc461c374aea217d249"
+  revision = "94de47d64c6323a57053b3dd1c97f250cee92741"
 
 [[projects]]
   digest = "1:c658e84ad3916da105a761660dcaeb01e63416c8ec7bc62256a9b411a05fcd67"
@@ -295,12 +325,12 @@
   version = "v0.0.9"
 
 [[projects]]
-  digest = "1:e150b5fafbd7607e2d638e4e5cf43aa4100124e5593385147b0a74e2733d8b0d"
+  digest = "1:9b90c7639a41697f3d4ad12d7d67dfacc9a7a4a6e0bbfae4fc72d0da57c28871"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c2a7a6ca930a4cd0bc33a3f298eb71960732a3a7"
-  version = "v0.0.7"
+  revision = "1311e847b0cb909da63b5fecfb5370aa66236465"
+  version = "v0.0.8"
 
 [[projects]]
   digest = "1:33422d238f147d247752996a26574ac48dcf472976eda7f5134015f06bf16563"
@@ -354,12 +384,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:fd61cf4ae1953d55df708acb6b91492d538f49c305b364a014049914495db426"
+  digest = "1:04457f9f6f3ffc5fea48e71d62f2ca256637dee0a04d710288e27e05c8b41976"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "UT"
-  revision = "8bdbc7bcc01dcbb8ec23dc8a28e332258d25251f"
-  version = "v1.4.1"
+  revision = "839c75faf7f98a33d445d181f3018b5c3409a45e"
+  version = "v1.4.2"
 
 [[projects]]
   digest = "1:d0072748c62defde1ad99dde77f6ffce492a0e5aea9204077e497c7edfb86653"
@@ -380,18 +410,18 @@
     "proxy",
   ]
   pruneopts = "UT"
-  revision = "a4d6f7feada510cc50e69a37b484cb0fdc6b7876"
+  revision = "b5b0513f8c1bb7c1e3e6f168fba117131fe2614a"
 
 [[projects]]
   branch = "master"
-  digest = "1:646036a04e163f383d101f40e36fd3354676c7dcccc226d825200a6b9509727a"
+  digest = "1:34e1fc56e564497983cefb665c0d0447187746591bf14094847a32bc0efe6fe5"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "a5b02f93d862f065920dd6a40dddc66b60d0dec4"
+  revision = "516e3c20635fbe39539f7ed361a15c51fec29cd8"
 
 [[projects]]
   branch = "master"
@@ -399,18 +429,18 @@
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
-  revision = "d00d292a067ce1aa0017b40ca75437b42461fa61"
+  revision = "a7e196e89fd3a3c4d103ca540bd5dac3a736e375"
 
 [[projects]]
-  digest = "1:4a251721b698c0e6285aec21d4ba3f79ddeccd903690144461b360ea7f948106"
+  digest = "1:0ab52610f1ba280ff13841ea86e19468c182be408682fdb0b83b649b226a74bc"
   name = "google.golang.org/grpc"
   packages = [
     "codes",
     "status",
   ]
   pruneopts = "UT"
-  revision = "25c4f928eaa6d96443009bd842389fb4fa48664e"
-  version = "v1.20.1"
+  revision = "501c41df7f472c740d0674ff27122f3f48c80ce7"
+  version = "v1.21.1"
 
 [[projects]]
   digest = "1:cbc72c4c4886a918d6ab4b95e347ffe259846260f99ebdd8a198c2331cf2b2e9"
@@ -446,6 +476,8 @@
     "github.com/fatih/color",
     "github.com/gin-contrib/gzip",
     "github.com/gin-gonic/gin",
+    "github.com/jinzhu/gorm",
+    "github.com/lib/pq",
     "github.com/satori/go.uuid",
   ]
   solver-name = "gps-cdcl"
