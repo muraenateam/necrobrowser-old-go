@@ -9,8 +9,14 @@ type NecroBrowser struct {
 
 	Provider string `json:"provider" binding:"required"`
 
+	DebuggingPort int `json:"debuggingPort" binding:"required"`
+
+	EmulatedUseragent   string // which UA to spoof
+	EmulatedFingerprint string // which fingerprint to spoof
+
 	NecroTarget NecroTarget
 
+	// each browser can be used for N extrusions
 	Extrusions []Extrusion
 }
 
