@@ -98,7 +98,7 @@ func KnownBrowserHandler(c *gin.Context) {
 }
 
 func logError(err error) {
-	log.Error("%+v", err)
+	log.Error("ERROR: %+v", err)
 }
 
 func NewBrowserHandler(c *gin.Context) {
@@ -112,6 +112,7 @@ func NewBrowserHandler(c *gin.Context) {
 	var toInstrument InstrumentationRequest
 	err := c.BindJSON(&toInstrument)
 	if err != nil {
+		logError(err)
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
 		return
 	}
@@ -139,7 +140,12 @@ func (i *InstrumentationRequest) instrumentNewBrowser(options core.Options) (err
 	log.Info("Instructing zombie for %s", i.Provider)
 
 	// The zombie
-	t := zombie.Target{Context: context.Background(), Cookies: i.SessionCookies}
+	t := zombie.Target{
+		Context:  context.Background(),
+		Cookies:  i.SessionCookies,
+		Username: i.Username,
+		Password: i.Password,
+	}
 	z, err := core.GetZombie(i.Provider, t, options)
 	if err != nil {
 		return err

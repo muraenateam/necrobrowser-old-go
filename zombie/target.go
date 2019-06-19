@@ -18,8 +18,10 @@ type Zombie interface {
 }
 
 type Target struct {
-	Context context.Context
-	Cookies []SessionCookie
+	Username string
+	Password string
+	Context  context.Context
+	Cookies  []SessionCookie
 	Config
 }
 

