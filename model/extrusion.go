@@ -13,7 +13,7 @@ type Extrusion struct {
 
 	NecroBrowserID uint
 
-	Status string `sql:"default:new"` // processing, completed, error
+	Status string `sql:"default:'new'"` // processing, completed, error
 
 	Provider string `json:"provider" binding:"required"`
 

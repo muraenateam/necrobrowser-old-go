@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/muraenateam/necrobrowser/model"
 
 	ll "github.com/evilsocket/islazy/log"
 
@@ -14,6 +15,9 @@ func main() {
 
 	// Logging
 	log.SetLevel(ll.DEBUG)
+
+	// init gorm db
+	model.Init()
 
 	// Load configuration options
 	options, err := core.ParseOptions()

@@ -25,9 +25,10 @@ func Connect() {
 	connection := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, user, passwd, db)
 	db, err := gorm.Open("postgres", connection)
 	if err != nil {
-		log.Fatalf("There was an error connecting to Postgres:\n %s", err)
+		log.Fatalf("Error connecting to Postgres: %s", err)
 		panic(err.Error())
 	}
+	log.Printf("Connected to Postgres (%s@%s)", user, host)
 
 	Session = db
 }
