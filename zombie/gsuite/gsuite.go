@@ -66,15 +66,16 @@ func (z *GSuite) Instrument() (interface{}, error) {
 	a := action.Action{Target: z.Target}
 	z.Info("Instrumenting Google accounts")
 
-	login := &login.Login{
+	loginAutomation := &login.Login{
 		Action:           a,
-		URL:              "https://accounts.google.com/signin/v2/identifier",
+		URL:              "https://accounts.google.com/ServiceLogin",
 		Username:         z.Target.Username,
-		UsernameSelector: `#identifierId`,
+		UsernameSelector: `#gaia_firstform > div > div > div > div > input`,
+		//UsernameSelector: `#identifierId`, - GUI MODE
 		Password:         z.Target.Password,
 		PasswordSelector: `#password > div > div > div > input`,
 	}
-	if err = login.Do(); err != nil {
+	if err = loginAutomation.Do(); err != nil {
 		log.Error("Error performing login: %v", err)
 		return nil, err
 	}

@@ -4,13 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
-	"strconv"
-	"sync"
-
 	"github.com/chromedp/chromedp"
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
+	"net/http"
+	"strconv"
+	"sync"
 
 	"github.com/muraenateam/necrobrowser/action/navigation"
 	"github.com/muraenateam/necrobrowser/core"
@@ -199,6 +198,10 @@ func (i *InstrumentationRequest) instrumentNewBrowser(options core.Options) (err
 
 	// Instrument the zombie
 	zombieCtx, _ := chromedp.NewContext(allocCtx)
+
+	// force a context timeout
+	//timeoutCtx, _ := context.WithTimeout(zombieCtx, 30 * time.Second)
+
 	z.SetContext(zombieCtx)
 	_, err = z.Instrument()
 	if err != nil {

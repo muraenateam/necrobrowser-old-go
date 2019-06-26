@@ -1,8 +1,6 @@
 package login
 
 import (
-	"time"
-
 	"github.com/chromedp/chromedp"
 
 	"github.com/muraenateam/necrobrowser/action"
@@ -42,15 +40,16 @@ func (a *Login) Description() string {
 func (a *Login) Do() (err error) {
 	z := a.Target
 	z.Info("Logging into %s", a.URL)
+	z.Info("Username form selector [%s] - Passwd form selector [%s]", a.UsernameSelector, a.PasswordSelector)
 
 	t := chromedp.Tasks{
 		chromedp.Navigate(a.URL),
-		chromedp.Sleep(2 * time.Second),
+		//chromedp.Sleep(2 * time.Second),
 
-		chromedp.WaitVisible(a.UsernameSelector),
+		chromedp.WaitVisible(a.UsernameSelector, chromedp.ByQuery),
 		chromedp.SendKeys(a.UsernameSelector, a.Username+"\n"),
 
-		chromedp.WaitVisible(a.PasswordSelector),
+		chromedp.WaitVisible(a.PasswordSelector, chromedp.ByQuery),
 		chromedp.SendKeys(a.PasswordSelector, a.Password+"\n"),
 	}
 
