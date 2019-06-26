@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"github.com/chromedp/chromedp"
 	"github.com/gin-gonic/gin"
+	"github.com/muraenateam/necrobrowser/model"
 	"github.com/satori/go.uuid"
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/muraenateam/necrobrowser/action/navigation"
 	"github.com/muraenateam/necrobrowser/core"
@@ -30,9 +32,10 @@ var (
 
 // this goes in the Sync.Map jobs
 type InstrumentationJob struct {
-	ID       string `json:"id"`
-	Provider string `json:"provider"`
-	Context  context.Context
+	ID          string `json:"id"`
+	Provider    string `json:"provider"`
+	ExtrusionId uint   `json:"extrusionId"`
+	Context     context.Context
 }
 
 type KnownBrowserRequest struct {
@@ -138,6 +141,13 @@ func NewBrowserHandler(c *gin.Context) {
 func (i *InstrumentationRequest) instrumentNewBrowser(options core.Options) (err error) {
 	log.Info("Instructing zombie for %s", i.Provider)
 
+	extrusion := model.Extrusion{
+		StartedAt: time.Now(),
+		Provider:  i.Provider,
+	}
+
+	model.Session.Create(&extrusion)
+
 	// The zombie
 	t := zombie.Target{
 		Context:  context.Background(),
@@ -194,7 +204,7 @@ func (i *InstrumentationRequest) instrumentNewBrowser(options core.Options) (err
 
 	id := uuid.NewV4().String()
 	log.Info("Adding new Instrumentation job with id: %s", id)
-	jobs.Store(id, InstrumentationJob{id, i.Provider, allocCtx})
+	jobs.Store(id, InstrumentationJob{id, i.Provider, extrusion.ID, allocCtx})
 
 	// Instrument the zombie
 	zombieCtx, _ := chromedp.NewContext(allocCtx)

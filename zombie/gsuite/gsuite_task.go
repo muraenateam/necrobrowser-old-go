@@ -31,6 +31,26 @@ func (z *GSuite) searchGSuite(keyword string) chromedp.Tasks {
 	}
 }
 
+func (z *GSuite) dumpEmailByMessageId(messageId string) (html string) {
+
+	log.Info("Searching for messageId %s", tui.Bold(tui.Red(messageId)))
+
+	a := action.Action{Target: z.Target}
+
+	// Dump Settings
+	d := &dom.DOM{
+		Action:   a,
+		URL:      "https://mail.google.com/mail/u/0/#inbox",
+		Selector: `div[role='main']`,
+	}
+	if err := d.DumpGsuiteEmailByMessageId(1, messageId, &html); err != nil {
+		log.Error("Error retrieving DOM elements: %v", err)
+		log.Debug(html)
+	}
+
+	return
+}
+
 func (z *GSuite) dumpEmailByKeyword(keyword string) (html string) {
 
 	log.Info("Searching in gmail for %s", tui.Bold(tui.Red(keyword)))

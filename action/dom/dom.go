@@ -2,6 +2,7 @@ package dom
 
 import (
 	"fmt"
+	"github.com/muraenateam/necrobrowser/model"
 	"time"
 
 	"github.com/muraenateam/necrobrowser/action"
@@ -53,6 +54,40 @@ func (a *DOM) DumpSelector(html *string) (err error) {
 	path := fmt.Sprintf("%s/dump_%s.html", z.LootPath, action.Now())
 	z.Info("Dumping to %s", path)
 	err = ioutil.WriteFile(path, []byte(*html), 0644)
+	return
+}
+
+func (a *DOM) DumpGsuiteEmailByMessageId(extrusionId uint, messageId string, html *string) (err error) {
+	z := a.Target
+
+	z.Info("Dumping raw html contents of GSuite email %s (%s)", a.URL, a.Selector)
+	t := chromedp.Tasks{
+		chromedp.Navigate(a.URL),
+		chromedp.Sleep(1 * time.Second),
+		chromedp.WaitVisible(`#table`, chromedp.ByQueryAll),
+		chromedp.Sleep(2 * time.Second),
+		chromedp.Click(`#aso_search_form_anchor`),
+		chromedp.SendKeys(`#aso_search_form_anchor > div > input`, fmt.Sprintf("rfc822msgid:%s\n", messageId)),
+
+		// not randomized :D
+		chromedp.Click(a.Selector),
+		chromedp.Sleep(1 * time.Second),
+		chromedp.OuterHTML(a.Selector, html, chromedp.ByQueryAll),
+	}
+
+	if err = a.Run(t); err != nil {
+		return err
+	}
+
+	// TODO process warnings
+	emailExtrusion := model.EmailExtrusion{
+		ExtrusionID: extrusionId,
+		MessageId:   messageId,
+		RawHtml:     string(*html),
+	}
+
+	model.Session.Create(&emailExtrusion)
+
 	return
 }
 

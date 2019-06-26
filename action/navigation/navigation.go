@@ -40,7 +40,21 @@ func (a *Navigation) Navigate() (err error) {
 
 	t := chromedp.Tasks{
 		chromedp.Navigate(a.URL),
+		chromedp.Sleep(5 * time.Second),
+	}
+
+	return a.Run(t)
+}
+
+// Navigate changes the browser URL
+func (a *Navigation) NavigateAndWait(waitForSelector string) (err error) {
+	z := a.Target
+	z.Info("Navigating to %s", a.URL)
+
+	t := chromedp.Tasks{
+		chromedp.Navigate(a.URL),
 		chromedp.Sleep(2 * time.Second),
+		chromedp.WaitVisible(waitForSelector, chromedp.ByQuery),
 	}
 
 	return a.Run(t)
