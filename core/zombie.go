@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/muraenateam/necrobrowser/zombie/o365"
 
 	"github.com/muraenateam/necrobrowser/zombie"
 	"github.com/muraenateam/necrobrowser/zombie/dropbox"
@@ -12,7 +13,7 @@ import (
 	"github.com/muraenateam/necrobrowser/zombie/vultr"
 )
 
-var zombies = []string{"gsuite", "github", "owa2016", "dropbox", "atlassian", "vultr", "slack"}
+var zombies = []string{"gsuite", "github", "owa2016", "dropbox", "atlassian", "vultr", "slack", "o365"}
 
 func GetZombie(name string, target zombie.Target, options Options) (z zombie.Zombie, err error) {
 
@@ -31,6 +32,8 @@ func GetZombie(name string, target zombie.Target, options Options) (z zombie.Zom
 		z = slack.NewSlack(target)
 	case "owa2016":
 		z = owa.NewOWA(target)
+	case "o365":
+		z = o365.NewO365(target)
 	case "gsuite":
 		z = gsuite.NewGSuite(target)
 	}

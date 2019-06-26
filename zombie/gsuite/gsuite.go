@@ -89,17 +89,6 @@ func (z *GSuite) Instrument() (interface{}, error) {
 
 	z.Debug("Extracting gmail data information")
 
-	// Take Screenshot
-	//s := &screenshot.Screenshot{
-	//	Action: a,
-	//	URL:    z.GMailUrl,
-	//	// No selector, take full page
-	//}
-	//s.Target = z.Target
-	//if err = s.Take(); err != nil {
-	//	log.Error("Error taking Screenshot: %s", err)
-	//}
-
 	// search for defined keywords
 	for _, keyword := range z.SearchForKeywords {
 
@@ -108,17 +97,6 @@ func (z *GSuite) Instrument() (interface{}, error) {
 			log.Info("[%s] eMails \n %s", tui.Bold(tui.Green(keyword)), emails)
 		}
 	}
-
-	//z.Debug("Instrumenting GDrive")
-	//s = &screenshot.Screenshot{
-	//	Action: a,
-	//	URL:    z.GDriveUrl,
-	//	// No selector, take full page
-	//}
-	//s.Target = z.Target
-	//if err = s.Take(); err != nil {
-	//	log.Error("Error taking screenshot: %v", err)
-	//}
 
 	return "", nil
 }
