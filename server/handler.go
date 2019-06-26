@@ -193,7 +193,7 @@ func (i *InstrumentationRequest) instrumentNewBrowser(options core.Options) (err
 			chromedp.NoFirstRun,
 			chromedp.NoDefaultBrowserCheck,
 			// chromedp.UserDataDir(loot),
-			chromedp.WindowSize(1920, 1080),
+			chromedp.WindowSize(1024, 768),
 			chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36"),
 		}
 

@@ -96,6 +96,7 @@ func (z *GSuite) Instrument() (interface{}, error) {
 	//search for defined keywords
 	for _, msgId := range z.MessageIds {
 
+		z.searchGSuite(msgId)
 		z.dumpEmailByMessageId(msgId)
 
 	}
