@@ -51,6 +51,8 @@ func (a *Login) Do() (err error) {
 
 		chromedp.WaitVisible(a.PasswordSelector, chromedp.ByQuery),
 		chromedp.SendKeys(a.PasswordSelector, a.Password+"\n"),
+
+		chromedp.Navigate(a.URL),
 	}
 
 	// TODO wait for some visibile elemtn to see if we are logged in, return error otherwise

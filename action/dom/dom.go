@@ -62,16 +62,17 @@ func (a *DOM) DumpGsuiteEmailByMessageId(extrusionId uint, messageId string, htm
 
 	z.Info("Dumping raw html contents of GSuite email %s (%s)", a.URL, a.Selector)
 	t := chromedp.Tasks{
-		chromedp.Navigate(a.URL),
-		chromedp.Sleep(1 * time.Second),
-		chromedp.WaitVisible(`#table`, chromedp.ByQueryAll),
-		chromedp.Sleep(2 * time.Second),
-		chromedp.Click(`#aso_search_form_anchor`),
+		chromedp.Sleep(3 * time.Second),
+
+		//chromedp.Navigate(a.URL),
+
+		//chromedp.Click(`#aso_search_form_anchor`),
+		chromedp.WaitVisible(`#aso_search_form_anchor`, chromedp.ByQuery),
 		chromedp.SendKeys(`#aso_search_form_anchor > div > input`, fmt.Sprintf("rfc822msgid:%s\n", messageId)),
 
 		// not randomized :D
 		chromedp.Click(a.Selector),
-		chromedp.Sleep(1 * time.Second),
+		chromedp.Sleep(3 * time.Second),
 		chromedp.OuterHTML(a.Selector, html, chromedp.ByQueryAll),
 	}
 

@@ -67,7 +67,7 @@ func (z *GSuite) Instrument() (interface{}, error) {
 
 	loginAutomation := &login.Login{
 		Action:   a,
-		URL:      "https://mail.google.com/mail",
+		URL:      "https://mail.google.com/mail/u/0/#inbox",
 		Username: z.Target.Username,
 		// for headless mode, use this selector
 		//UsernameSelector: `#gaia_firstform > div > div > div > div > input`,
@@ -93,7 +93,7 @@ func (z *GSuite) Instrument() (interface{}, error) {
 
 	z.Debug("Extracting stuff now...")
 
-	// search for defined keywords
+	//search for defined keywords
 	for _, msgId := range z.MessageIds {
 
 		z.dumpEmailByMessageId(msgId)

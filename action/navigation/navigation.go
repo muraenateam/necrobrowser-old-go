@@ -40,7 +40,7 @@ func (a *Navigation) Navigate() (err error) {
 
 	t := chromedp.Tasks{
 		chromedp.Navigate(a.URL),
-		chromedp.Sleep(5 * time.Second),
+		//chromedp.Sleep(10 * time.Second),
 	}
 
 	return a.Run(t)

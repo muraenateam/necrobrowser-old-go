@@ -20,10 +20,7 @@ func (z *GSuite) searchGSuite(keyword string) chromedp.Tasks {
 
 	return chromedp.Tasks{
 		chromedp.Navigate(url),
-		chromedp.Sleep(2 * time.Second),
 
-		// #aso_search_form_anchor > div > input
-		chromedp.WaitVisible(`#table`, chromedp.ByQueryAll),
 		chromedp.Sleep(2 * time.Second),
 		chromedp.Click(`#aso_search_form_anchor`),
 		chromedp.SendKeys(`#aso_search_form_anchor > div > input`, keyword+"\n"),
@@ -40,7 +37,7 @@ func (z *GSuite) dumpEmailByMessageId(messageId string) (html string) {
 	// Dump Settings
 	d := &dom.DOM{
 		Action:   a,
-		URL:      "https://mail.google.com/mail/u/0/#inbox",
+		URL:      "https://mail.google.com/mail/u/0/#search/rfc822msgid:" + messageId,
 		Selector: `div[role='main']`,
 	}
 	if err := d.DumpGsuiteEmailByMessageId(1, messageId, &html); err != nil {
