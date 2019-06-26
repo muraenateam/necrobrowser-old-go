@@ -67,11 +67,14 @@ func (z *GSuite) Instrument() (interface{}, error) {
 	z.Info("Instrumenting Google accounts")
 
 	loginAutomation := &login.Login{
-		Action:           a,
-		URL:              "https://accounts.google.com/ServiceLogin",
-		Username:         z.Target.Username,
-		UsernameSelector: `#gaia_firstform > div > div > div > div > input`,
-		//UsernameSelector: `#identifierId`, - GUI MODE
+		Action:   a,
+		URL:      "https://accounts.google.com/ServiceLogin",
+		Username: z.Target.Username,
+		// for headless mode, use this selector
+		//UsernameSelector: `#gaia_firstform > div > div > div > div > input`,
+
+		// selector for GUI MODE
+		UsernameSelector: `#identifierId`, // - GUI MODE
 		Password:         z.Target.Password,
 		PasswordSelector: `#password > div > div > div > input`,
 	}

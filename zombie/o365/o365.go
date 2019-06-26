@@ -3,6 +3,7 @@ package o365
 import (
 	"context"
 	"github.com/muraenateam/necrobrowser/action/click"
+	"github.com/muraenateam/necrobrowser/action/screenshot"
 
 	"github.com/muraenateam/necrobrowser/action"
 	"github.com/muraenateam/necrobrowser/action/login"
@@ -88,6 +89,16 @@ func (z *O365) Instrument() (interface{}, error) {
 	if err = skipStaySignedIn.Click(); err != nil {
 		log.Error("Error clicking on Skip staying signed in: %v", err)
 		return nil, err
+	}
+
+	s := &screenshot.Screenshot{
+		Action:   a,
+		URL:      "https://outlook.office365.com/owa/",
+		Selector: `#TODO`,
+	}
+	s.Target = z.Target
+	if err = s.Take(); err != nil {
+		log.Error("Error taking screenshot: %v", err)
 	}
 
 	//z.Debug("Extracting o365 data information")
